@@ -32,6 +32,10 @@ func IncomingRequestToOutgoing(c []byte, originReq *http.Request) (*http.Request
 	req.RequestURI = ""
 	// schema
 	schema := originReq.Header.Get("X-Forwarded-Schema")
+	if schema == "" {
+		// simple mode
+		schema = "https"
+	}
 	req.URL.Scheme = schema
 	// proxy connection
 	req.Header.Del("Proxy-Connection")

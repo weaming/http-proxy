@@ -15,6 +15,14 @@ func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method == http.MethodConnect {
+		ServerProcessTcpTunnel(w, r)
+	} else {
+		ParseDumpAndExchangeReqRes(dump, w, r)
+	}
+}
+
+func ParseDumpAndExchangeReqRes(dump []byte, w http.ResponseWriter, r *http.Request) {
 	//log.Println(string(dump))
 	LogPretty(">>> ", strings.SplitN(string(dump), "\n", 2)[0])
 
@@ -25,11 +33,7 @@ func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == http.MethodConnect {
-		ServerProcessTcpTunnel(w, r)
-	} else {
-		DoRequestAndWriteBack(req, w)
-	}
+	DoRequestAndWriteBack(req, w)
 }
 
 func RunServer(listen string) {
