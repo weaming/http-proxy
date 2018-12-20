@@ -1,4 +1,33 @@
-# 如何写一个 HTTP 代理
+## HTTP Proxy
+
+The origin purpose is send kinds of protocol data through http protocol,
+then found forwarding https data without CA is not possible...
+
+## Install
+
+```
+go get -u github.com/weaming/http-proxy
+```
+
+## Usage
+
+```sh
+$ http-proxy -h
+Usage of http-proxy:
+  -listen string
+    	linsten on (default ":10008")
+  -server string
+    	server host:port
+  -simple
+    	serve http proxy without client
+
+$ http-proxy  -listen :3128 -simple  # serve http proxy directly
+
+$ http-proxy  # run proxy server
+$ http-proxy -listen :3128 -server $ip:10008  # run proxy client
+ ```
+
+## 如何写一个 HTTP 代理
 
 ![](https://www.ibm.com/support/knowledgecenter/ssw_ibm_i_73/rzaie/rzal8502.gif)
 
