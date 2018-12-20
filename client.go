@@ -14,17 +14,13 @@ var explicitForwardProxyHandler = cproxy.Configure()
 func ForwardServer(w http.ResponseWriter, r *http.Request) {
 	if *simple {
 		if r.Method == http.MethodConnect {
-			explicitForwardProxyHandler.ServeHTTP(w, r)
+			//explicitForwardProxyHandler.ServeHTTP(w, r)
+			ServerProcessTcpTunnel(w, r, true, nil)
 		} else {
 			dump := DumpIncomingRequest(r)
 			ParseDumpAndExchangeReqRes(dump, w, r)
 		}
 		return
-	} else {
-		if r.Method == http.MethodConnect {
-			ClientProcessTcpTunnel(w, r)
-			return
-		}
 	}
 
 	dump := DumpIncomingRequest(r)
@@ -39,6 +35,11 @@ func ForwardServer(w http.ResponseWriter, r *http.Request) {
 
 	AddForwardedHeaders(req, r)
 	DoRequestAndWriteBack(req, w)
+
+	if r.Method == http.MethodConnect {
+		ServerProcessTcpTunnel(w, r, false, nil)
+		return
+	}
 }
 
 func AddForwardedHeaders(req, originReq *http.Request) {

@@ -16,7 +16,7 @@ func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodConnect {
-		ServerProcessTcpTunnel(w, r)
+		ServerProcessTcpTunnel(w, r, true, nil)
 	} else {
 		ParseDumpAndExchangeReqRes(dump, w, r)
 	}

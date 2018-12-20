@@ -7,13 +7,18 @@ import (
 	"io"
 )
 
-func ServerProcessTcpTunnel(w http.ResponseWriter, r *http.Request) {
+func ServerProcessTcpTunnel(w http.ResponseWriter, r *http.Request, writeStatus bool, preData *[]byte) {
 	destConn, err := net.DialTimeout("tcp", r.Host, 10*time.Second)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	if writeStatus {
+		w.WriteHeader(http.StatusOK)
+	}
+	if preData != nil {
+		destConn.Write(*preData)
+	}
 
 	hijacker, ok := w.(http.Hijacker)
 	if !ok {
@@ -29,13 +34,8 @@ func ServerProcessTcpTunnel(w http.ResponseWriter, r *http.Request) {
 	go transfer(clientConn, destConn)
 }
 
-
 func transfer(destination io.WriteCloser, source io.ReadCloser) {
 	defer destination.Close()
 	defer source.Close()
 	io.Copy(destination, source)
-}
-
-func ClientProcessTcpTunnel(w http.ResponseWriter, r *http.Request) {
-	DoRequestAndWriteBack(r, w)
 }
