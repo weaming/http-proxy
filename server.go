@@ -8,6 +8,18 @@ import (
 )
 
 func ForwardInternet(w http.ResponseWriter, r *http.Request) {
+	LogPretty(" ***** ", r.Host)
+	if *simple {
+		if r.Method == http.MethodConnect {
+			//explicitForwardProxyHandler.ServeHTTP(w, r)
+			ProcessTcpTunnel(w, r.Host, true, nil)
+		} else {
+			dump := DumpIncomingRequest(r)
+			ParseDumpAndExchangeReqRes(dump, w, r)
+		}
+		return
+	}
+
 	dump, e := ioutil.ReadAll(r.Body)
 	if e != nil {
 		w.WriteHeader(500)

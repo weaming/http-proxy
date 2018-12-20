@@ -12,17 +12,7 @@ import (
 var explicitForwardProxyHandler = cproxy.Configure()
 
 func ForwardServer(w http.ResponseWriter, r *http.Request) {
-	if *simple {
-		if r.Method == http.MethodConnect {
-			//explicitForwardProxyHandler.ServeHTTP(w, r)
-			ProcessTcpTunnel(w, r.Host, true, nil)
-		} else {
-			dump := DumpIncomingRequest(r)
-			ParseDumpAndExchangeReqRes(dump, w, r)
-		}
-		return
-	}
-
+	LogPretty(" ***** ", r.Host)
 	dump := DumpIncomingRequest(r)
 	LogPretty(">>> ", strings.SplitN(string(dump), "\n", 2)[0])
 
