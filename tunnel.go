@@ -7,9 +7,10 @@ import (
 	"io"
 )
 
-func ServerProcessTcpTunnel(w http.ResponseWriter, r *http.Request, writeStatus bool, preData *[]byte) {
-	destConn, err := net.DialTimeout("tcp", r.Host, 10*time.Second)
+func ProcessTcpTunnel(w http.ResponseWriter, host string, writeStatus bool, preData *[]byte) {
+	destConn, err := net.DialTimeout("tcp", host, 10*time.Second)
 	if err != nil {
+		LogPretty("  *>> ", err)
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}

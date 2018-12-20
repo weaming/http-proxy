@@ -16,7 +16,7 @@ func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodConnect {
-		ServerProcessTcpTunnel(w, r, true, nil)
+		ProcessTcpTunnel(w, r.Host, true, nil)
 	} else {
 		ParseDumpAndExchangeReqRes(dump, w, r)
 	}
@@ -37,9 +37,8 @@ func ParseDumpAndExchangeReqRes(dump []byte, w http.ResponseWriter, r *http.Requ
 }
 
 func RunServer(listen string) {
-	http.HandleFunc("/", ForwardInternet)
 	log.Printf("Listening %v\n", listen)
-	if err := http.ListenAndServe(listen, nil); err != nil {
+	if err := http.ListenAndServe(listen, http.HandlerFunc(ForwardInternet)); err != nil {
 		panic(err)
 	}
 }

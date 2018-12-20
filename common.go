@@ -43,11 +43,11 @@ func IncomingRequestToOutgoing(c []byte, originReq *http.Request) (*http.Request
 	return req, nil
 }
 
-func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter, close bool) {
-	LogPretty("* >>> ", req.Header)
+func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter) {
+	LogPretty("  *>> ", req.Header)
 	res, e := Client.Do(req)
 	if e != nil {
-		//LogPretty("* >>> ", req)
+		//LogPretty("  *>> ", req)
 		w.WriteHeader(502)
 		lg := fmt.Sprintf("* 502 Bad Gateway: fail doing request: %v\n", e)
 		log.Println(lg)
@@ -56,22 +56,19 @@ func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter, close bool)
 	}
 
 	// read body
-	var body []byte
-	if close {
-		body, e = ioutil.ReadAll(res.Body)
-		if e != nil {
-			w.WriteHeader(502)
-			lg := "502 Bad Gateway: fail read response body"
-			log.Println(lg)
-			w.Write([]byte(lg))
-			return
-		}
-	} else {
-		body =  ""
+	length := res.ContentLength
+	body, e := ioutil.ReadAll(res.Body)
+	if e != nil {
+		w.WriteHeader(502)
+		lg := fmt.Sprintf("* 502 Bad Gateway: fail reading response body: %v\n", e)
+		log.Println(lg)
+		w.Write([]byte(lg))
+		return
 	}
 
 	// status
 	w.WriteHeader(res.StatusCode)
+	w.Header().Set("Content-Length", fmt.Sprintf("%v", length))
 	LogPretty("<<< status: ", res.StatusCode)
 
 	// headers

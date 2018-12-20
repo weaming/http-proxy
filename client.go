@@ -15,7 +15,7 @@ func ForwardServer(w http.ResponseWriter, r *http.Request) {
 	if *simple {
 		if r.Method == http.MethodConnect {
 			//explicitForwardProxyHandler.ServeHTTP(w, r)
-			ServerProcessTcpTunnel(w, r, true, nil)
+			ProcessTcpTunnel(w, r.Host, true, nil)
 		} else {
 			dump := DumpIncomingRequest(r)
 			ParseDumpAndExchangeReqRes(dump, w, r)
@@ -26,6 +26,11 @@ func ForwardServer(w http.ResponseWriter, r *http.Request) {
 	dump := DumpIncomingRequest(r)
 	LogPretty(">>> ", strings.SplitN(string(dump), "\n", 2)[0])
 
+	if r.Method == http.MethodConnect {
+		ProcessTcpTunnel(w, *server, false, &dump)
+		return
+	}
+
 	req, e := http.NewRequest("POST", *server, bytes.NewReader(dump))
 	if e != nil {
 		w.WriteHeader(500)
@@ -35,11 +40,6 @@ func ForwardServer(w http.ResponseWriter, r *http.Request) {
 
 	AddForwardedHeaders(req, r)
 	DoRequestAndWriteBack(req, w)
-
-	if r.Method == http.MethodConnect {
-		ServerProcessTcpTunnel(w, r, false, nil)
-		return
-	}
 }
 
 func AddForwardedHeaders(req, originReq *http.Request) {
