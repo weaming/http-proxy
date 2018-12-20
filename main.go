@@ -13,8 +13,8 @@ func init() {
 
 func main() {
 	if *server == "" {
-		runServer(*listen)
+		RunServer(*listen)
 	} else {
-		runClient(*listen, *server)
+		RunClient(*listen, *server)
 	}
 }

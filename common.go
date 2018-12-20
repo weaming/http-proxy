@@ -12,7 +12,7 @@ import (
 
 var Client = http.DefaultClient
 
-func dumpRequest(req *http.Request) []byte {
+func DumpIncomingRequest(req *http.Request) []byte {
 	dump, err := httputil.DumpRequest(req, true)
 	if err != nil {
 		log.Println(err)
@@ -20,19 +20,30 @@ func dumpRequest(req *http.Request) []byte {
 	return dump
 }
 
-func incomingToOutgoing(c []byte) (*http.Request, error) {
-	r, e := http.ReadRequest(bufio.NewReader(bytes.NewReader(c)))
+func IncomingRequestToOutgoing(c []byte, originReq *http.Request) (*http.Request, error) {
+	req, e := http.ReadRequest(bufio.NewReader(bytes.NewReader(c)))
 	if e != nil {
-		return r, e
+		return req, e
 	}
-	r.RequestURI = ""
-	return r, nil
+
+	//LogPretty("  >>> ", originReq.Header)
+
+	// uri
+	req.RequestURI = ""
+	// schema
+	schema := originReq.Header.Get("X-Forwarded-Schema")
+	req.URL.Scheme = schema
+	// proxy connection
+	req.Header.Del("Proxy-Connection")
+
+	return req, nil
 }
 
-func doRequest(req *http.Request, w http.ResponseWriter) {
+func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter) {
+	LogPretty("* >>> ", req.Header)
 	res, e := Client.Do(req)
 	if e != nil {
-		log.Printf("%+v\n", req)
+		//LogPretty("* >>> ", req)
 		w.WriteHeader(502)
 		lg := fmt.Sprintf("502 Bad Gateway: fail doing request: %v\n", e)
 		log.Println(lg)
@@ -52,7 +63,7 @@ func doRequest(req *http.Request, w http.ResponseWriter) {
 
 	// status
 	w.WriteHeader(res.StatusCode)
-	logPretty("<<< status: ", res.StatusCode)
+	LogPretty("<<< status: ", res.StatusCode)
 
 	// headers
 	for k, vs := range res.Header {
@@ -64,12 +75,12 @@ func doRequest(req *http.Request, w http.ResponseWriter) {
 			}
 		}
 	}
-	logPretty("<<< headers: ", w.Header())
+	LogPretty("<<< headers: ", w.Header())
 
 	// body
 	w.Write(body)
 }
 
-func logPretty(prefix string, v interface{}) {
+func LogPretty(prefix string, v interface{}) {
 	log.Printf("%v%+v\n", prefix, v)
 }

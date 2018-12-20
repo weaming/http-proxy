@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 	"io/ioutil"
+	"strings"
 )
 
-
-func forwardInternet(w http.ResponseWriter, r *http.Request) {
+func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 	dump, e := ioutil.ReadAll(r.Body)
 	if e != nil {
 		w.WriteHeader(500)
@@ -15,20 +15,25 @@ func forwardInternet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(string(dump))
+	//log.Println(string(dump))
+	LogPretty(">>> ", strings.SplitN(string(dump), "\n", 2)[0])
 
-	req, e := incomingToOutgoing(dump)
+	req, e := IncomingRequestToOutgoing(dump, r)
 	if e != nil {
 		w.WriteHeader(500)
-		w.Write([]byte("500 Internal Error: fail incomingToOutgoing"))
+		w.Write([]byte("500 Internal Error: fail IncomingRequestToOutgoing"))
 		return
 	}
 
-	doRequest(req, w)
+	if r.Method == http.MethodConnect {
+		ServerProcessTcpTunnel(w, r)
+	} else {
+		DoRequestAndWriteBack(req, w)
+	}
 }
 
-func runServer(listen string) {
-	http.HandleFunc("/", forwardInternet)
+func RunServer(listen string) {
+	http.HandleFunc("/", ForwardInternet)
 	log.Printf("Listening %v\n", listen)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		panic(err)
