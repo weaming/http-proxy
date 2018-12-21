@@ -15,9 +15,9 @@ go get -u github.com/weaming/http-proxy
 $ http-proxy -h
 Usage of http-proxy:
   -listen string
-    	linsten on (default ":10008")
+    	listen host:port (default ":8123")
   -server string
-    	server host:port
+    	server host:port, run as client if given
   -simple
     	serve http proxy without client
 
