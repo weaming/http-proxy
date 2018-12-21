@@ -5,18 +5,34 @@ import (
 	"net/http"
 	"io/ioutil"
 	"strings"
+	"github.com/smartystreets/cproxy"
 )
+
+var explicitForwardProxyHandler = cproxy.Configure()
+
+func SimpleMode(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodConnect {
+		explicitForwardProxyHandler.ServeHTTP(w, r)
+		CreateTcpTunnel(w, r.Host, true, nil)
+	} else {
+		dump := DumpIncomingRequest(r)
+
+		// option 1: exchange normal http
+		// ParseDumpAndExchangeReqRes(dump, w, r)
+
+		// option 2: crete tunnel directly
+		targetHost := r.Host
+		if !strings.Contains(targetHost, ":") {
+			targetHost += ":80"
+		}
+		CreateTcpTunnel(w, targetHost, false, &dump)
+	}
+}
 
 func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 	LogPretty(" ***** ", r.Host)
 	if *simple {
-		if r.Method == http.MethodConnect {
-			//explicitForwardProxyHandler.ServeHTTP(w, r)
-			ProcessTcpTunnel(w, r.Host, true, nil)
-		} else {
-			dump := DumpIncomingRequest(r)
-			ParseDumpAndExchangeReqRes(dump, w, r)
-		}
+		SimpleMode(w, r)
 		return
 	}
 
@@ -28,7 +44,7 @@ func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodConnect {
-		ProcessTcpTunnel(w, r.Host, true, nil)
+		CreateTcpTunnel(w, r.Host, true, nil)
 	} else {
 		ParseDumpAndExchangeReqRes(dump, w, r)
 	}

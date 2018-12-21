@@ -5,11 +5,8 @@ import (
 	"log"
 	"bytes"
 	"strings"
-	"github.com/smartystreets/cproxy"
 	"fmt"
 )
-
-var explicitForwardProxyHandler = cproxy.Configure()
 
 func ForwardServer(w http.ResponseWriter, r *http.Request) {
 	LogPretty(" ***** ", r.Host)
@@ -17,7 +14,7 @@ func ForwardServer(w http.ResponseWriter, r *http.Request) {
 	LogPretty(">>> ", strings.SplitN(string(dump), "\n", 2)[0])
 
 	if r.Method == http.MethodConnect {
-		ProcessTcpTunnel(w, *server, false, &dump)
+		CreateTcpTunnel(w, *server, false, &dump)
 		return
 	}
 

@@ -7,7 +7,8 @@ import (
 	"io"
 )
 
-func ProcessTcpTunnel(w http.ResponseWriter, host string, writeStatus bool, preData *[]byte) {
+// Process CONNECT request and create TCP tunnel
+func CreateTcpTunnel(w http.ResponseWriter, host string, writeStatus bool, preData *[]byte) {
 	destConn, err := net.DialTimeout("tcp", host, 10*time.Second)
 	if err != nil {
 		LogPretty("  *>> ", err)
