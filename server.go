@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"io/ioutil"
 	"strings"
-	"github.com/smartystreets/cproxy"
 )
 
-var explicitForwardProxyHandler = cproxy.Configure()
+//"github.com/smartystreets/cproxy"
+//var explicitForwardProxyHandler = cproxy.Configure()
 
 func SimpleMode(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodConnect {
-		explicitForwardProxyHandler.ServeHTTP(w, r)
+		//explicitForwardProxyHandler.ServeHTTP(w, r)
 		CreateTcpTunnel(w, r.Host, true, nil)
 	} else {
 		dump := DumpIncomingRequest(r)
