@@ -21,20 +21,12 @@ func SimpleMode(w http.ResponseWriter, r *http.Request) {
 		// ParseDumpAndExchangeReqRes(dump, w, r)
 
 		// option 2: crete tunnel directly
-		CreateTcpTunnel(w, getTunnelHost(r), false, &dump)
+		CreateTcpTunnel(w, correctTcpHost(r.Host), false, &dump)
 	}
-}
-
-func getTunnelHost(r *http.Request) string{
-	host := r.Host
-	if !strings.Contains(host, ":") {
-		host += ":80"
-	}
-	return host
 }
 
 func ForwardInternet(w http.ResponseWriter, r *http.Request) {
-	LogPretty(" ***** ", r.Host)
+	LogPretty("***** SRH ", r.Host)
 	if *simple {
 		SimpleMode(w, r)
 		return
@@ -56,16 +48,16 @@ func ForwardInternet(w http.ResponseWriter, r *http.Request) {
 
 func ParseDumpAndExchangeReqRes(dump []byte, w http.ResponseWriter, r *http.Request) {
 	//log.Println(string(dump))
-	LogPretty(">>> ", strings.SplitN(string(dump), "\n", 2)[0])
+	LogPretty("  *>> ", strings.SplitN(string(dump), "\n", 2)[0])
 
-	req, e := IncomingRequestToOutgoing(dump, r)
+	req, e := IncomingRequestToOutgoing(dump, r, "http")
 	if e != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("500 Internal Error: fail IncomingRequestToOutgoing"))
 		return
+	} else {
+		DoRequestAndWriteBack(req, w)
 	}
-
-	DoRequestAndWriteBack(req, w)
 }
 
 func RunServer(listen string) {

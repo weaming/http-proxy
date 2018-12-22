@@ -21,7 +21,7 @@ func DumpIncomingRequest(req *http.Request) []byte {
 	return dump
 }
 
-func IncomingRequestToOutgoing(c []byte, originReq *http.Request) (*http.Request, error) {
+func IncomingRequestToOutgoing(c []byte, originReq *http.Request, defaultSchema string) (*http.Request, error) {
 	req, e := http.ReadRequest(bufio.NewReader(bytes.NewReader(c)))
 	if e != nil {
 		return req, e
@@ -35,7 +35,7 @@ func IncomingRequestToOutgoing(c []byte, originReq *http.Request) (*http.Request
 	schema := originReq.Header.Get("X-Forwarded-Schema")
 	if schema == "" {
 		// simple mode
-		schema = "https"
+		schema = defaultSchema
 	}
 	req.URL.Scheme = schema
 	// proxy connection
@@ -45,7 +45,7 @@ func IncomingRequestToOutgoing(c []byte, originReq *http.Request) (*http.Request
 }
 
 func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter) {
-	LogPretty("  *>> ", req.Header)
+	//LogPretty("  *>> ", req.Header)
 	res, e := Client.Do(req)
 	if e != nil {
 		//LogPretty("  *>> ", req)
@@ -55,6 +55,7 @@ func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter) {
 		w.Write([]byte(lg))
 		return
 	}
+	defer res.Body.Close()
 
 	// read body
 	length := res.ContentLength
@@ -79,10 +80,10 @@ func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter) {
 				w.Header().Set(k, v)
 			} else {
 				w.Header().Add(k, v)
-		}
+			}
 		}
 	}
-	LogPretty("<<< headers: ", w.Header())
+	//LogPretty("<<< headers: ", w.Header())
 
 	// body
 	w.Write(body)

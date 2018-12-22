@@ -9,27 +9,25 @@ import (
 )
 
 func ForwardServer(w http.ResponseWriter, r *http.Request) {
-	LogPretty(" ***** ", r.Host)
+	LogPretty("***** CRH ", r.Host)
 	dump := DumpIncomingRequest(r)
-	LogPretty(">>> ", strings.SplitN(string(dump), "\n", 2)[0])
+	LogPretty("  *>> ", strings.SplitN(string(dump), "\n", 2)[0])
 
 	if r.Method == http.MethodConnect {
+		// pass by the CONNECT to server
 		CreateTcpTunnel(w, *server, false, &dump)
 		return
 	}
 
-	req, e := http.NewRequest("POST", correctHttpHost(*server), bytes.NewReader(dump))
-	if e != nil {
+	if req, e := http.NewRequest("POST", correctHttpHost(*server), bytes.NewReader(dump)); e != nil {
 		w.WriteHeader(500)
 		log.Fatal(w.Write([]byte("500 Internal Error: fail on NewRequest")))
-		return
+	} else {
+		DoRequestAndWriteBack(AddForwardedHeaders(req, r), w)
 	}
-
-	AddForwardedHeaders(req, r)
-	DoRequestAndWriteBack(req, w)
 }
 
-func AddForwardedHeaders(req, originReq *http.Request) {
+func AddForwardedHeaders(req, originReq *http.Request) *http.Request {
 	fBy := "package-via-http"
 	fFor := originReq.Header.Get("User-Agent")
 	fHost := originReq.Host
@@ -37,7 +35,7 @@ func AddForwardedHeaders(req, originReq *http.Request) {
 	//fSchema := originReq.URL.Scheme
 	fSchema := "https"
 	ip := originReq.RemoteAddr
-	LogPretty("  >>> ", originReq.Header)
+	//LogPretty("  *>> ", originReq.Header)
 
 	forward := fmt.Sprintf("by=%v; for=%v; host=%v; proto=%v", fBy, fFor, fHost, fProto)
 	req.Header.Set("Forwarded", forward)
@@ -47,6 +45,8 @@ func AddForwardedHeaders(req, originReq *http.Request) {
 	req.Header.Set("X-Forwarded-Proto", fProto)
 	req.Header.Set("X-Forwarded-Schema", fSchema)
 	req.Header.Set("X-Real-IP", ip)
+
+	return req
 }
 
 func RunClient(listen, server string) {
