@@ -1,10 +1,10 @@
 package main
 
 import (
-	"net/http"
-	"net"
-	"time"
 	"io"
+	"net"
+	"net/http"
+	"time"
 )
 
 // Process CONNECT request and create TCP tunnel
@@ -39,5 +39,10 @@ func CreateTcpTunnel(w http.ResponseWriter, host string, writeStatus bool, preDa
 func transfer(destination io.WriteCloser, source io.ReadCloser) {
 	defer destination.Close()
 	defer source.Close()
-	io.Copy(destination, source)
+
+	if *key != "" {
+		AESStream(*key, destination, source)
+	} else {
+		io.Copy(destination, source)
+	}
 }

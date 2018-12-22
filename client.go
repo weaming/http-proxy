@@ -1,11 +1,11 @@
 package main
 
 import (
-	"net/http"
-	"log"
 	"bytes"
-	"strings"
 	"fmt"
+	"log"
+	"net/http"
+	"strings"
 )
 
 func ForwardServer(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +21,7 @@ func ForwardServer(w http.ResponseWriter, r *http.Request) {
 	req, e := http.NewRequest("POST", *server, bytes.NewReader(dump))
 	if e != nil {
 		w.WriteHeader(500)
-		w.Write([]byte("500 Internal Error: fail on NewRequest"))
+		log.Fatal(w.Write([]byte("500 Internal Error: fail on NewRequest")))
 		return
 	}
 
@@ -52,5 +52,5 @@ func AddForwardedHeaders(req, originReq *http.Request) {
 func RunClient(listen, server string) {
 	log.Printf("Listening %v\n", listen)
 	outerHandler := http.HandlerFunc(ForwardServer)
-	http.ListenAndServe(listen, outerHandler)
+	log.Fatal(http.ListenAndServe(listen, outerHandler))
 }

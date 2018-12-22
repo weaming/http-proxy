@@ -1,9 +1,9 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
-	"io/ioutil"
 	"strings"
 )
 
@@ -21,12 +21,16 @@ func SimpleMode(w http.ResponseWriter, r *http.Request) {
 		// ParseDumpAndExchangeReqRes(dump, w, r)
 
 		// option 2: crete tunnel directly
-		targetHost := r.Host
-		if !strings.Contains(targetHost, ":") {
-			targetHost += ":80"
-		}
-		CreateTcpTunnel(w, targetHost, false, &dump)
+		CreateTcpTunnel(w, getTunnelHost(r), false, &dump)
 	}
+}
+
+func getTunnelHost(r *http.Request) string{
+	host := r.Host
+	if !strings.Contains(host, ":") {
+		host += ":80"
+	}
+	return host
 }
 
 func ForwardInternet(w http.ResponseWriter, r *http.Request) {
