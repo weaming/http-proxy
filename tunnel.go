@@ -40,9 +40,5 @@ func transfer(destination io.WriteCloser, source io.ReadCloser) {
 	defer destination.Close()
 	defer source.Close()
 
-	if *key != "" {
-		AESStream(*key, destination, source)
-	} else {
-		io.Copy(destination, source)
-	}
+	io.Copy(destination, source)
 }

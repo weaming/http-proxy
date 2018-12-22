@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"io/ioutil"
 	"log"
+	"strings"
 )
 
 var Client = http.DefaultClient
@@ -78,7 +79,7 @@ func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter) {
 				w.Header().Set(k, v)
 			} else {
 				w.Header().Add(k, v)
-			}
+		}
 		}
 	}
 	LogPretty("<<< headers: ", w.Header())
@@ -89,4 +90,17 @@ func DoRequestAndWriteBack(req *http.Request, w http.ResponseWriter) {
 
 func LogPretty(prefix string, v interface{}) {
 	log.Printf("%v%+v\n", prefix, v)
+}
+
+func correctTcpHost(host string) string {
+	if !strings.Contains(host, ":") {
+		host += ":80"
+	}
+	return host
+}
+func correctHttpHost(host string) string {
+	if !strings.HasPrefix(host, "http") {
+		host = "http://" + host
+	}
+	return host
 }

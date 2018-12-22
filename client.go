@@ -18,7 +18,7 @@ func ForwardServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, e := http.NewRequest("POST", *server, bytes.NewReader(dump))
+	req, e := http.NewRequest("POST", correctHttpHost(*server), bytes.NewReader(dump))
 	if e != nil {
 		w.WriteHeader(500)
 		log.Fatal(w.Write([]byte("500 Internal Error: fail on NewRequest")))

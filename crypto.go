@@ -9,13 +9,17 @@ import (
 	"io"
 )
 
-func AESStream(secret string, outWriter io.Writer, inReader io.Reader) {
-	stream := getStream(secret)
-	reader := &cipher.StreamReader{S: stream, R: inReader}
-	io.Copy(outWriter, reader)
+func CopyAsAESReader(secret string, outWriter io.Writer, inReader io.Reader) {
+	io.Copy(outWriter, AESStreamReader(inReader, secret))
 }
 
-func getStream(secret string) cipher.Stream {
+func AESStreamReader(inReader io.Reader, secret string) io.Reader {
+	stream := GetAESStream(secret)
+	reader := &cipher.StreamReader{S: stream, R: inReader}
+	return reader
+}
+
+func GetAESStream(secret string) cipher.Stream {
 	key, _ := hex.DecodeString(Md5(secret))
 
 	block, err := aes.NewCipher(key)
@@ -33,7 +37,7 @@ func Md5(secret string) string {
 }
 
 func AES(origin []byte, secret string) []byte {
-	stream := getStream(secret)
+	stream := GetAESStream(secret)
 	rv := make([]byte, len(origin))
 	stream.XORKeyStream(rv, origin)
 	return rv
